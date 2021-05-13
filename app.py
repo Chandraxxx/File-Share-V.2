@@ -16,7 +16,7 @@ app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
 # Manage Session
 app.secret_key = "1q2w3e4r5t"
-app.config['PERMANENT_SESSION_LIFETIME'] =  timedelta(minutes=5)
+app.config['PERMANENT_SESSION_LIFETIME'] =  timedelta(minutes=15)
 # Config MySQL db
 app.config['MYSQL_USER'] = 'sql3412162'
 app.config['MYSQL_PASSWORD'] = 'tJqUW9xh7h'
@@ -72,16 +72,33 @@ def listDownload():
 @app.route('/add_user', methods=['GET', 'POST'])
 def addUser():
         if "uname" in session:
+                cur = mysql.connection.cursor()
                 if request.method == 'POST':
+                        isExist = cur.execute('''SELECT (id) FROM user''')
+                        if isExist == 0:
+                                no = 1
+                        elif isExist > 0:
+                                no = cur.execute('''SELECT id FROM file WHERE id=(SELECT max(id) FROM file)''')+1
+                        id = no
                         name = request.form['name']
                         username = request.form['uname']
+                        #Check if username already exist
+                        isUsernameExist = cur.execute("SELECT (id) from user where username = '%s'" %username) #0 means no username inside table
+                        if isUsernameExist > 0:
+                                # theres id inside table
+                                return render_template('add_user.html', failed = 'True')
                         password =request.form['pw']
                         level = request.form['level']
                         date = datetime.now()
                         active = "OFF"
-                        return "Sementara"
+                        # Insert user
+                        cur.execute('''INSERT INTO user (id, name_user, username, password, code_level, date_user, code_active) VALUES (%s,%s,%s,%s,%s,%s,%s)''', (id, name, username, password, level, date, active))
+                        mysql.connection.commit()
+                        # Tool debuging
+                        #return render_template('test.html', no = isUsernameExist)
+                        return render_template('add_user.html', success = "True")
                 #End if
-                return render_template('add_user.html')
+                return render_template('add_user.html', success = "False", failed = 'False')
         else:
                 return redirect(url_for('login'))
 ##end
@@ -124,7 +141,7 @@ def helpCentre():
         return render_template('help_centre.html', failed = "False", success = "False")
 
 # logout
-@app.route('/logou t')
+@app.route('/logout')
 def logOut():
         session.pop('uname', None)
         return redirect(url_for("login"))
