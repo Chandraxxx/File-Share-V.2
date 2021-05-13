@@ -55,9 +55,12 @@
 				  						
 				  					</div>
 				  					<div class="col-6" style="margin-left:30px;">
-				  						<button class="btn btn-success form-control-sm ">
-					  					<i class="fa fa-plus-square-o" aria-hidden="true"  ></i>
-					  					</button>
+				  						
+				  							<a href="/add_user" class="btn btn-success form-control-sm">
+				  									<i class="fa fa-plus-square-o" aria-hidden="true"  ></i>	
+				  							</a>
+					  			
+					  					
 				  					</div>
 				  					</div>
 								</div>
@@ -75,6 +78,7 @@
 					        <th>Username</th>
 					        <th>Level</th>
 					        <th>Date Created</th>
+					        <th>Status</th>
 					        <th>Action</th>
 					      </tr>
 					    </thead>
@@ -87,6 +91,7 @@
 					      	<td>john123</td>
 					      	<td>Member</td>
 					      	<td>Today</td>
+					      	<td>Online</td>
 					        <td>
 					        	<a href="{{file.linkF}}" target="_blank" class="btn-sm btn-secondary rounded mr-1 p-2" ><i class="fa fa-arrow-circle-o-down" aria-hidden="true"></i></a>
 					        	{%if session['level'] == "Admin"%}
@@ -126,7 +131,7 @@
 		      </div>
 		      <div class="modal-footer">
 		        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-		        <button type="button" class="btn btn-danger">Yes</button>
+		        <a href="/logout" class="btn btn-danger">Logout</a>
 		      </div>
 		    </div>
 		  </div>
