@@ -1,0 +1,10 @@
+link: https://www.freemysqlhosting.net/
+email: rubychandra45@gmail.com
+password: 12345678
+
+Mydatabase
+Server: sql3.freemysqlhosting.net
+Name: sql3412162
+Username: sql3412162
+Password: tJqUW9xh7h
+Port number: 3306
