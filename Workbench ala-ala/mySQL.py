@@ -3,7 +3,6 @@ from datetime import datetime
 from flask_mysqldb import MySQL
 
 app = Flask(__name__)
-
 app.config['MYSQL_USER'] = 'sql3412162'
 app.config['MYSQL_PASSWORD'] = 'tJqUW9xh7h'
 app.config['MYSQL_HOST'] = 'sql3.freemysqlhosting.net'
@@ -66,8 +65,12 @@ def index():
     cur.execute("INSERT INTO user VALUES(1, 'Admin', 'admin', 'admin', 'A', '2020-02-20', 'OFF')")
     mysql.connection.commit()
     
-    return "Good"
-
+    # cur.execute("SELECT * FROM user")
+    # container = []
+    # for id, name_user, username, password, code_level, date_user, code_active in cur.fetchall():
+    #     container.append((id, name_user, username, password, code_level, date_user, code_active))
+    # return render_template('test.html', container = container)
+    return "good"
 if __name__ == "__main__":
         app.run(debug=True)
 
@@ -78,4 +81,5 @@ if __name__ == "__main__":
     #    container.append((code_level, name_level))
     #return render_template('test.html', container = container)
 #end
+     
 
