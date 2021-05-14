@@ -43,18 +43,19 @@
 				  			<div class="col-8">
 				  				<label for="titleHeading" class="h5">List User</label>
 				  			</div>
-				  		{#%if session['level'] =="Admin"%#}
+				  			<!-- put if for level -->
 				  			<div class="col-4 text-end">
 				  				<div class="container">
-				  					<div class="row text-end">
-				  					<div class="col-6" style="margin-left: -30px;">
-				  						<form class="d-flex">
-									        <input class="form-control-sm me-2" type="search" placeholder="Search" aria-label="Search">
-									        <button class="btn btn-outline-success" type="submit">Search</button>
+				  					<div class="row text-end justify-content-end">
+				  					<div class="col-6">
+				  						<form  method="GET">
+									        <div class="col">
+									        	<input class="form-control-sm mt-1" type="search" name="s" placeholder="Search by Name" >
+									    	</div>
 									    </form>
 				  						
 				  					</div>
-				  					<div class="col-6" style="margin-left:30px;">
+				  					<div class="col-4" style="margin-left:30px;">
 				  						
 				  							<a href="/add_user" class="btn btn-success form-control-sm">
 				  									<i class="fa fa-plus-square-o" aria-hidden="true"  ></i>	
@@ -65,7 +66,7 @@
 				  					</div>
 								</div>
 				  			</div>
-				  		{#%endif%#}
+				  			<!-- put endif -->
 				  		</div>
 				  	
 					</div>
@@ -83,22 +84,30 @@
 					      </tr>
 					    </thead>
 					    <tbody>
-					    	{%for file in container%}
+					    	{%for baris in container%}
 
 					      <tr class="text-center">
-					      	<td>1</td>
-					      	<td>John</td>
-					      	<td>john123</td>
-					      	<td>Member</td>
-					      	<td>Today</td>
-					      	<td>Online</td>
+					      	<td>{{baris[0]}}</td>
+					      	<td>{{baris[1]}}</td>
+					      	<td>{{baris[2]}}</td>
+					      	<!-- Level -->
+					      	<td>{%if baris[4] == 'A':%}
+					      		<p>Admin</p>
+					      		{%elif baris[4] == 'M':%}
+					      		<p>Member</p>
+					      	{%endif%}</td>
+					      	<td>{{baris[5]}}</td>
+					      	<td>{%if baris[6] == 'OFF':%}
+					      		<p>Offline</p>
+					      		{%elif baris[6] == 'ON':%}
+					      		<p>Online</p>
+					      	{%endif%}
+					      </td>
 					        <td>
-					        	<a href="{{file.linkF}}" target="_blank" class="btn-sm btn-secondary rounded mr-1 p-2" ><i class="fa fa-arrow-circle-o-down" aria-hidden="true"></i></a>
-					        	{%if session['level'] == "Admin"%}
-					        	<a href="http://localhost:5000/edit_File/{{file.idF}}" class="btn-sm btn-info rounded p-2"><i class="text-light fa fa-pencil-square-o" aria-hidden="true"></i></a>
 
-					        	<a href="http://localhost:5000/del_File/{{file.idF}}" class="btn-sm btn-danger rounded ml-1 p-2"><i class="text-light fa fa-trash-o" aria-hidden="true"></i></a>
-					        	{%endif%}
+					        	<a href="/list_user/edit_user/{{baris[0]}}" class="btn-sm btn-info rounded p-2"><i class="text-light fa fa-pencil-square-o" aria-hidden="true"></i></a>
+					        	<!-- Button del -->
+					        	<a href="/del_user/{{baris[0]}}" class="btn-sm btn-danger rounded ml-1 p-2"><i class="text-light fa fa-trash-o" aria-hidden="true"></i></a>
 					        </td>
 					      </tr>
 					      	{%endfor%}

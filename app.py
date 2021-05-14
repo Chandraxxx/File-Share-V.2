@@ -22,7 +22,6 @@ app.config['MYSQL_USER'] = 'sql3412162'
 app.config['MYSQL_PASSWORD'] = 'tJqUW9xh7h'
 app.config['MYSQL_HOST'] = 'sql3.freemysqlhosting.net'
 app.config['MYSQL_DB'] = 'sql3412162'
-app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
 mysql = MySQL(app)
 
@@ -68,17 +67,20 @@ def listDownload():
 
 #manage USER
 
-##add_user
+##add_user/ Done
 @app.route('/add_user', methods=['GET', 'POST'])
 def addUser():
         if "uname" in session:
                 cur = mysql.connection.cursor()
                 if request.method == 'POST':
-                        isExist = cur.execute('''SELECT (id) FROM user''')
-                        if isExist == 0:
+                        isRowExist = cur.execute('''SELECT (id) FROM user''')
+
+                        if isRowExist == 0:
                                 no = 1
-                        elif isExist > 0:
-                                no = cur.execute('''SELECT id FROM file WHERE id=(SELECT max(id) FROM file)''')+1
+                        elif isRowExist > 0:
+                                cur.execute("SELECT MAX(id) as maximum from user")
+                                max_id= cur.fetchone()
+                                no = int(''.join(map(str, max_id))) + 1
                         id = no
                         name = request.form['name']
                         username = request.form['uname']
@@ -86,8 +88,8 @@ def addUser():
                         isUsernameExist = cur.execute("SELECT (id) from user where username = '%s'" %username) #0 means no username inside table
                         if isUsernameExist > 0:
                                 # theres id inside table
-                                return render_template('add_user.html', failed = 'True')
-                        password =request.form['pw']
+                                return render_template('manage_user/add_user.html', failed = 'True')
+                        password = request.form['pw']
                         level = request.form['level']
                         date = datetime.now()
                         active = "OFF"
@@ -95,23 +97,85 @@ def addUser():
                         cur.execute('''INSERT INTO user (id, name_user, username, password, code_level, date_user, code_active) VALUES (%s,%s,%s,%s,%s,%s,%s)''', (id, name, username, password, level, date, active))
                         mysql.connection.commit()
                         # Tool debuging
-                        #return render_template('test.html', no = isUsernameExist)
-                        return render_template('add_user.html', success = "True")
+                        return render_template('manage_user/add_user.html', success = "True")
                 #End if
-                return render_template('add_user.html', success = "False", failed = 'False')
+                return render_template('manage_user/add_user.html', success = "False", failed = 'False')
         else:
                 return redirect(url_for('login'))
-##end
+##end add
+
+## delete_user
+@app.route('/del_user/<id>')
+def delUser(id):
+        if'uname' in session:
+                #get id form url
+                idUser = id
+                cur = mysql.connection.cursor()
+                cur.execute("DELETE FROM user WHERE id ='%s'" %(idUser))
+                mysql.connection.commit()
+                return redirect(url_for('listUser'))
+        else:
+                return redirect(url_for('login'))
+## end del
+
+##edit_user
+@app.route('/list_user/edit_user/<id>', methods = ['GET','POST'])
+def editUser(id):
+        if 'uname' in session:
+                cur = mysql.connection.cursor()
+                idUser = id
+                cur.execute("SELECT * FROM user where id = '%s'" %idUser)
+                result = cur.fetchone()
+                # return str(result)
+                if request.method == "POST":
+                        id = request.form['id']
+                        name = request.form['name']
+                        username = request.form['uname']
+                        password = request.form['pw']
+                        level = request.form['level']
+                        cur.execute("UPDATE user SET name_user = '%s', username = '%s', password = '%s', code_level = '%s' WHERE id = '%s' " % (name, username, password, level, id))
+                        mysql.connection.commit()
+                        return redirect(url_for('listUser'))
+                else:#array [3] itu password
+                        return render_template('manage_user/edit_user.html', data = result)
+        else:
+                return redirect(url_for('login'))
+##end edit
+
+#end
+
+#manage File
 
 #end
 
 #userlistPage
 @app.route('/list_user')
 def listUser():
+        cur = mysql.connection.cursor()
         if "uname" in session:
-                return render_template('list_user.html')
+                s = request.args.get('s')
+                if s is None: 
+                        #means search bar not filled
+                        cur.execute("SELECT * FROM user")
+                        container = []
+                        for id, name_user, username, password, code_level, date_user, code_active in cur.fetchall():
+                                container.append((id, name_user, username, password, code_level, date_user, code_active))
+
+                        return render_template('list_user.html' , container = container)
+                else:
+                        #ada isi disearchbar
+                        keySearch = request.args.get('s')
+                        # Key search berdasarkan name
+                        cur.execute("SELECT * FROM user WHERE name_user = '%s'" %keySearch)
+                        container = []
+                        for id, name_user, username, password, code_level, date_user, code_active in cur.fetchall():
+                                container.append((id, name_user, username, password, code_level, date_user, code_active))
+                                
+                        return render_template('list_user.html' , container = container)
         else:
                 return redirect(url_for('login'))
+
+
 # helpCentrePage
 @app.route('/help_centre',methods=['GET','POST'])
 def helpCentre():

@@ -41,26 +41,30 @@
 				  			<div class="col-8">
 				  				<label for="titleHeading" class="h5">List Download</label>
 				  			</div>
-				  		{#%if session['level'] =="Admin"%#}
+				  		<!-- put if for level -->
 				  			<div class="col-4 text-end">
 				  				<div class="container">
-				  					<div class="row text-end">
-				  					<div class="col-6" style="margin-left: -30px;">
-				  						<form class="d-flex">
-									        <input class="form-control-sm me-2" type="search" placeholder="Search" aria-label="Search">
-									        <button class="btn btn-outline-success" type="submit">Search</button>
+				  					<div class="row text-end justify-content-end">
+				  					<div class="col-6">
+				  						<form  method="GET">
+									        <div class="col">
+									        	<input class="form-control-sm mt-1" type="search" name="s" placeholder="Search by Filename" >
+									    	</div>
 									    </form>
 				  						
 				  					</div>
-				  					<div class="col-6" style="margin-left:30px;">
-				  						<button class="btn btn-success form-control-sm ">
-					  					<i class="fa fa-plus-square-o" aria-hidden="true"  ></i>
-					  					</button>
+				  					<div class="col-4" style="margin-left:30px;">
+				  						
+				  							<a href="/add_user" class="btn btn-success form-control-sm">
+				  									<i class="fa fa-plus-square-o" aria-hidden="true"  ></i>	
+				  							</a>
+					  			
+					  					
 				  					</div>
 				  					</div>
 								</div>
 				  			</div>
-				  		{#%endif%#}
+				  			<!-- put endif -->
 				  		</div>
 				  	
 					</div>
