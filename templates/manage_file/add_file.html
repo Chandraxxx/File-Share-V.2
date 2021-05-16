@@ -10,12 +10,12 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0" crossorigin="anonymous">
 
-    <title>FileShare - Login</title>
+    <title>FileShare - Add File</title>
   </head>
-  <body onload="msg(); msg2();">
+  <body onload="success(); failed(); failed2();">
   	<!-- navbar -->
   	<nav class="navbar navbar-expand-lg navbar-light bg-light justify-content-center">
-	  <p class="navbar-text font-weight-bold text-danger">Login FileShares - Authorized Only</p>	
+	  <p class="navbar-text font-weight-bold text-danger">FileShares - Authorized Only</p>	
 	</nav>
   	<!-- end -->
 
@@ -23,34 +23,31 @@
 		 <div class=" p-3 mb-4">
 		  <div class="position-absolute top-50 start-50 translate-middle " style="height: 400px">
 		    <div class="p-2  col-example border-dark">
-		    	<form method="POST">
+		    	<form method="POST" enctype="multipart/form-data">
 		    		<div class="container border-dark border shadow-sm shadow-primary rounded p-4">
 		    			<div class="row">
-		    				<div class="col form-text text-center h5">
-		    					Login
+		    				<div class="col form-text text-center h4">
+		    					Add File
 		    				</div>
 		    			</div>	
 		    			<hr class="my-3">
 		    			<div class="row">
 		    				<div class="col-4 form-text">
-		    					<label for="" class="form-label">Username :</label>
+		    					<label for="" class="form-label">File:</label>
 		    				</div>
 		    				<div class="col-8">
-		    					<input type="text" name="uname" class="form-control" required="" >
+		    					<input type="file" name="file" class="form-control" required="">
 		    				</div>
 		    			</div>
-		    			<div class="row my-2">
-		    				<div class="col-4 form-text">
-		    					<label for="" class="form-label">Password :</label>
-		    				</div>
-		    				<div class="col-8">
-		    					<input type="Password" name="pw" class="form-control" required="">
-		    				</div>
-		    			</div>
-		    			
+
 		    			<hr class="my-3">
-		    			<div class="row my-2 mx-5">
-		    				<button class="form-control-sm btn-sm btn-outline-primary rounded" value="submit">Login</button>
+		    			<div class="row my-2 mx-5 text-center">
+		    				<div class="col-6">
+		    					<button class="btn btn-sm btn-primary rounded py-2" value="submit">Submit</button>
+		    				</div>
+		    				<div class="col-6">
+		    					<a href="/list_download" class="btn btn-sm btn-danger py-2 rounded ">Cancel</a>
+		    				</div>
 		    			</div>
 		    		</div>
 		    	</form>
@@ -71,20 +68,30 @@
     
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.min.js" integrity="sha384-lpyLfhYuitXl2zRZ5Bn2fqnhNAKOAaM/0Kr9laMspuaMiZfGmfwRNFh8HlMy49eQ" crossorigin="anonymous"></script>
-
-
-		    			<!-- Start Sweetalert -->
+   
+    <!-- Start Sweetalert -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.12.5/dist/sweetalert2.all.min.js"></script>
         <script>
-
-        
-// Alert for failed username
-        function msg()
+// Alert for success 
+        function success()
         {
-        	 if ("{{ msg }}" == "True") {
+        	 if ("{{ success }}" == "True") {
+			    swal.fire({
+	            title:"Success",
+	            text:"Good, success to save the file.",
+	            icon:"success",
+	            closeOnConfirm: false
+	            });
+		      }
+           
+        }
+// Alert for failed upload
+        function failed()
+        {
+        	 if ("{{ failed }}" == "True") {
 		       swal.fire({
 	            title:"Failed",
-	            text:"Sorry, Username didn't exists on our system.",
+	            text:"Filename already exists or Not allowed file extension, please check again :)",
 	            icon:"error",
 	            closeOnConfirm: false
 	            });
@@ -93,23 +100,17 @@
         }
 // End
 
-// Alert for failed password
-        function msg2()
-        {
-        	 if ("{{ msg2 }}" == "True") {
+		function failed2()
+		{
+			if ("{{ failed2 }}" == "True") {
 		       swal.fire({
 	            title:"Failed",
-	            text:"Sorry, Password didn't match on our system.",
+	            text:"Opps your files too big, max = 100mb",
 	            icon:"error",
 	            closeOnConfirm: false
 	            });
 		      }
-            
-        }
-// End
-
-	
+		}
         </script>
-    
   </body>
 </html>

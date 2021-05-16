@@ -24,7 +24,9 @@
 		      <div class="navbar-nav" style="margin-left: auto;">
 		        <a class="nav-link active" aria-current="page" href="{{url_for('index')}}">Home</a>
 		        <a class="nav-link" href="{{url_for('listDownload')}}">Download</a>
+		        {%if session['level'] == 'A':%}
 		        <a class="nav-link" href="{{url_for('listUser')}}">Users</a>
+		        {%endif%}
 		        <a class="nav-link" href="{{url_for('helpCentre')}}">Help Centre</a>
 		        <button class="nav-link border-0 bg-light"data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</button>
 		      </div>
@@ -47,7 +49,9 @@
 					<p style="font-size: 18px;">Good {{greet}}</p>
 				</div>
 				<div class="row text-center my-1">
+					{%if session['level'] == 'M':%}
 					<p style="font-size: 16px;">Ready to explore ??, <span><a href="{{url_for('listDownload')}}" class="page-link border-0 btn-sm">Lets go!</a></span></p>
+					{%endif%}
 				</div>
 			</div>
 		</div>

@@ -13,7 +13,7 @@
 
     <title>FileShare - Users</title>
   </head>
-  <body>
+  <body onload="failed()">
   	<!-- navbar -->
   	<nav class="navbar navbar-expand-lg navbar-light bg-light">
 		  <div class="container">
@@ -25,7 +25,9 @@
 		      <div class="navbar-nav" style="margin-left: auto;">
 		        <a class="nav-link " aria-current="page" href="{{url_for('index')}}">Home</a>
 		        <a class="nav-link" href="{{url_for('listDownload')}}">Download</a>
+		        {% if session['level'] == 'A'%}
 		        <a class="nav-link active" href="{{url_for('listUser')}}">Users</a>
+		        {% endif %}
 		        <a class="nav-link" href="{{url_for('helpCentre')}}">Help Centre</a>
 		        <button class="nav-link border-0 bg-light"data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</button>
 		      </div>
@@ -41,7 +43,7 @@
 				  	
 				  		<div class="row ">
 				  			<div class="col-8">
-				  				<label for="titleHeading" class="h5">List User</label>
+				  				<label for="titleHeading" class="h5">{{title}}</label>
 				  			</div>
 				  			<!-- put if for level -->
 				  			<div class="col-4 text-end">
@@ -107,7 +109,9 @@
 
 					        	<a href="/list_user/edit_user/{{baris[0]}}" class="btn-sm btn-info rounded p-2"><i class="text-light fa fa-pencil-square-o" aria-hidden="true"></i></a>
 					        	<!-- Button del -->
+					        	
 					        	<a href="/del_user/{{baris[0]}}" class="btn-sm btn-danger rounded ml-1 p-2"><i class="text-light fa fa-trash-o" aria-hidden="true"></i></a>
+					        	
 					        </td>
 					      </tr>
 					      	{%endfor%}
@@ -146,6 +150,29 @@
 		  </div>
 		</div>
     <!-- end -->
+
+    <!-- Start Sweetalert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.12.5/dist/sweetalert2.all.min.js"></script>
+        <script>
+
+        
+// Alert for failed find
+        function failed()
+        {
+        	 if ("{{ failed }}" == "True") {
+		       swal.fire({
+	            title:"Failed",
+	            text:"Sorry, your data didn't exists here.",
+	            icon:"error",
+	            closeOnConfirm: false
+	            });
+		      }
+            
+        }
+// End
+
+	
+        </script>
 
   </body>
 </html>

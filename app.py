@@ -1,7 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, send_file
+from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 from flask_mail import Mail, Message
 from flask_mysqldb import MySQL
+
 
 import os, pdfkit
 
@@ -9,23 +11,33 @@ path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
 config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
 
 app = Flask(__name__)
-# Manage Flask-Mail
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USE_SSL'] = False
-# Manage Session
-app.secret_key = "1q2w3e4r5t"
-app.config['PERMANENT_SESSION_LIFETIME'] =  timedelta(minutes=15)
+
 # Config MySQL db
 app.config['MYSQL_USER'] = 'sql3412162'
 app.config['MYSQL_PASSWORD'] = 'tJqUW9xh7h'
 app.config['MYSQL_HOST'] = 'sql3.freemysqlhosting.net'
 app.config['MYSQL_DB'] = 'sql3412162'
 
+
 mysql = MySQL(app)
 
 
+# Manage Flask-Mail
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+
+# Manage Session
+app.secret_key = "1q2w3e4r5t"
+app.config['PERMANENT_SESSION_LIFETIME'] =  timedelta(minutes=15)
+
+# Manage Upload File
+app.config['UPLOAD_FOLDER'] = os.path.realpath('.') + '/static/file'
+
+
+
+#home
 @app.route('/')
 def index():
         if "uname" in session:
@@ -50,26 +62,54 @@ def login():
                 return redirect(url_for('index'))
         else:
                 if request.method == "POST":
+                        cur = mysql.connection.cursor()
                         username = request.form['uname']
                         password = request.form['pw']
-                        session['uname'] = username
-                        return redirect(url_for('index'))
-                else:
-                        return render_template('login.html')
 
-#downloadlistPage
-@app.route('/list_download')
-def listDownload():
-        if "uname" in session:
-                return render_template('list_download.html')
-        else:
-                return redirect(url_for('login'))
+                        #validasi
+                        tmp = cur.execute("SELECT id FROM user WHERE username = '%s'" %username)
+
+                        if tmp == 0 :
+                                return render_template('login.html', msg = 'True')
+
+                        cur.execute("SELECT username,password,code_level,id FROM user WHERE username = '%s'" %username)
+                        result = cur.fetchone()
+
+                        if username == result[0]:
+                                #username exists on database
+                                if password == result[1]:
+                                        #all validation passed
+                                        session['uname'] = username
+                                        session['level'] = result[2]
+                                        session['id'] = result[3]
+                                        #change status
+                                        cur.execute("UPDATE user set code_active = '%s' WHERE id ='%s'" %('ON', result[3]))
+
+                                        mysql.connection.commit()
+
+                                        return redirect(url_for('index'))
+                                else:
+                                        return render_template('login.html', msg2 = 'True')
+                        else:
+                                return render_template('login.html', msg = 'True')
+                        #end
+                        
+                        
+                else:
+                        return render_template('login.html', msg = 'False', msg2 = 'False')
+
+
 
 #manage USER
 
 ##add_user/ Done
 @app.route('/add_user', methods=['GET', 'POST'])
 def addUser():
+        # member cant access
+        if 'level' in session:
+                _level = session['level']
+                if _level == 'M':
+                        return redirect(url_for('index'))
         if "uname" in session:
                 cur = mysql.connection.cursor()
                 if request.method == 'POST':
@@ -107,6 +147,11 @@ def addUser():
 ## delete_user
 @app.route('/del_user/<id>')
 def delUser(id):
+        # member cant access
+        if 'level' in session:
+                _level = session['level']
+                if _level == 'M':
+                        return redirect(url_for('index'))
         if'uname' in session:
                 #get id form url
                 idUser = id
@@ -121,6 +166,11 @@ def delUser(id):
 ##edit_user
 @app.route('/list_user/edit_user/<id>', methods = ['GET','POST'])
 def editUser(id):
+        # member cant access
+        if 'level' in session:
+                _level = session['level']
+                if _level == 'M':
+                        return redirect(url_for('index'))
         if 'uname' in session:
                 cur = mysql.connection.cursor()
                 idUser = id
@@ -136,7 +186,7 @@ def editUser(id):
                         cur.execute("UPDATE user SET name_user = '%s', username = '%s', password = '%s', code_level = '%s' WHERE id = '%s' " % (name, username, password, level, id))
                         mysql.connection.commit()
                         return redirect(url_for('listUser'))
-                else:#array [3] itu password
+                else:
                         return render_template('manage_user/edit_user.html', data = result)
         else:
                 return redirect(url_for('login'))
@@ -144,34 +194,198 @@ def editUser(id):
 
 #end
 
+#download
+@app.route('/list_download/downloadfile/<paths>')
+def downloadFile(paths):
+        if "uname" in session:
+                path = app.config['UPLOAD_FOLDER'] + '/' + secure_filename(paths)
+
+                return send_file(path, as_attachment=True)
+        else:
+                return redirect(url_for('login'))
+#
+
+#downloadlistPage
+@app.route('/list_download')
+def listDownload():
+        if "uname" in session:
+                s = request.args.get('s')
+                cur = mysql.connection.cursor()
+
+                if s is None:
+                        headingtable = 'List Download'
+                        # Search bar empty
+                        cur.execute("SELECT * FROM file")
+                        container = []
+                        for id, name_file, code_type, size_file, date_file, path_file in cur.fetchall():
+                                round(12.3456, 2)
+                                container.append((id, name_file, code_type, round(size_file / 1024 / 1024, 3), date_file, path_file))
+                        return render_template('list_download.html', container = container, headingTable = headingtable, failed = "False")
+                else:
+                        #exists
+                        headingtable = 'Search Result'
+                        key = request.args.get('s')
+                        key = '%'+key+'%'
+                        cur.execute("SELECT * FROM file where name_file LIKE '%s'" %key)
+                        #check if file exists
+                        tmp = cur.execute("SELECT * FROM file where name_file LIKE '%s'" %key)
+                        if tmp == 0:
+                                return render_template('list_download.html', failed="True")
+                        #end
+                        container = []
+                        for id, name_file, code_type, size_file, date_file, path_file in cur.fetchall():
+                                round(12.3456, 2)
+                                container.append((id, name_file, code_type, round(size_file / 1024 / 1024, 3), date_file, path_file))
+                        return render_template('list_download.html', container = container, headingTable = headingtable, failed = 'False')
+        else:
+                return redirect(url_for('login'))
+
+#end
+
 #manage File
+
+                ##add File
+@app.route('/add_file', methods = ['GET', 'POST'])
+def addFile():
+        # member cant access
+        if 'level' in session:
+                _level = session['level']
+                if _level == 'M':
+                        return redirect(url_for('index'))
+        if 'uname' in session:
+                cur = mysql.connection.cursor()
+
+                if request.method == "POST":
+                        f = request.files['file']
+                        t = request.files['file']
+
+                        filename = app.config['UPLOAD_FOLDER'] + '/' + secure_filename(f.filename)
+                        tmp = app.config['UPLOAD_FOLDER'] + '/' + secure_filename(t.filename)
+
+                        try:
+                                temp = f.filename # Real name
+                                #split name with extension
+                                name_file,b=temp.split('.')
+
+# ALLOWED_EXTENSIONS 
+
+                                if b == 'jpg' or b == 'png' or b == 'jpeg' :
+                                        code_type='IMG'
+                                elif b == 'mp3' :
+                                        code_type="MSC"
+                                elif b == 'mp4' or b == 'mov' or b == 'wmv' or b== 'avi' or b == 'mkv' :
+                                        code_type='VID'
+                                elif b == 'pdf' or b == 'doc' or b == 'txt' or b== 'docx':
+                                        code_type='DOC'
+
+                                f.save(filename)
+                                # Get File size / bytes
+                                # ref: https://stackoverflow.com/questions/15772975/flask-get-the-size-of-request-files-object
+                                f.seek(9,os.SEEK_END)
+                                size_file = f.tell()
+
+# app.config['MAX_CONTENT_LENGTH'] 100 megabytes
+
+                                if size_file > 100* 1024 * 1024 :
+                                        #Files too big
+                                        os.remove(os.path.join(app.config['UPLOAD_FOLDER'],tmp))
+                                        return render_template('manage_file/add_file.html' , failed2 = "True")
+
+                                #check if table already has data
+                                isRowExist=cur.execute('''SELECT (id) FROM file''')
+                                if isRowExist == 0:
+                                        id = 1
+                                elif isRowExist > 0:
+                                        max_id = cur.execute("SELECT MAX(id) as maximum from file")
+                                        max_id = cur.fetchone()
+                                        id = int(''.join(map(str, max_id))) + 1
+                                
+                                date_file = datetime.now()
+                                path_file = t.filename
+
+                                # insert into table file
+                                cur.execute("INSERT INTO file (id, name_file, code_type, size_file, date_file, path_file) VALUES (%s,%s,%s,%s,%s,%s)",(id, name_file, code_type, size_file,date_file, path_file))
+                                mysql.connection.commit()
+
+                                return render_template('manage_file/add_file.html',  success = "True")
+                        except Exception as e:
+                                # if filename already exists auto failed
+                                return render_template('manage_file/add_file.html',  failed = "True")
+                else:
+                        #GET Method
+                        return render_template('manage_file/add_file.html',  success = "False" , failed = 'False', Failed2 = 'False' )
+        else:
+                return redirect(url_for('login'))
+                ## end
+
+                ## del File
+@app.route('/del_file/<id>')
+def delFile(id):
+        # member cant access
+        if 'level' in session:
+                _level = session['level']
+                if _level == 'M':
+                        return redirect(url_for('index'))
+        if 'uname' in session:
+                cur = mysql.connection.cursor()
+                _id = id
+                #take filename
+                
+                cur.execute("SELECT path_file FROM file WHERE id  = '%s'" %_id)
+                fname = cur.fetchone()
+                path  = app.config['UPLOAD_FOLDER'] + '/' + secure_filename(fname[0])
+                # remove file from folder
+                os.remove(os.path.join(app.config['UPLOAD_FOLDER'], path))
+
+                # return str (path)
+
+                cur.execute("DELETE FROM file where id = '%s' " %_id)
+                mysql.connection.commit()
+
+                return redirect(url_for('listDownload'))
+        else:
+                return redirect(url_for('login'))
+                ## end del
 
 #end
 
 #userlistPage
 @app.route('/list_user')
 def listUser():
+        # member cant access
+        if 'level' in session:
+                _level = session['level']
+                if _level == 'M':
+                        return redirect(url_for('index'))
         cur = mysql.connection.cursor()
         if "uname" in session:
                 s = request.args.get('s')
                 if s is None: 
+                        headtitle = 'List User'
                         #means search bar not filled
                         cur.execute("SELECT * FROM user")
                         container = []
                         for id, name_user, username, password, code_level, date_user, code_active in cur.fetchall():
                                 container.append((id, name_user, username, password, code_level, date_user, code_active))
 
-                        return render_template('list_user.html' , container = container)
+                        return render_template('list_user.html' , container = container, title = headtitle, failed = 'False')
                 else:
+                        headtitle = 'Search Result'
                         #ada isi disearchbar
                         keySearch = request.args.get('s')
+                        keySearch = '%' + keySearch + '%'
                         # Key search berdasarkan name
-                        cur.execute("SELECT * FROM user WHERE name_user = '%s'" %keySearch)
+                        cur.execute("SELECT * FROM user WHERE name_user LIKE '%s'" %keySearch)
+                        #jika nama user tidak ada
+                        tmp = cur.execute("SELECT * FROM user WHERE name_user LIKE '%s'" %keySearch)
+                        if tmp == 0:
+                                return render_template('list_user.html', failed = 'True')
+                        #end if
                         container = []
                         for id, name_user, username, password, code_level, date_user, code_active in cur.fetchall():
                                 container.append((id, name_user, username, password, code_level, date_user, code_active))
                                 
-                        return render_template('list_user.html' , container = container)
+                        return render_template('list_user.html' , container = container, title = headtitle, failed = 'False')
         else:
                 return redirect(url_for('login'))
 
@@ -207,8 +421,19 @@ def helpCentre():
 # logout
 @app.route('/logout')
 def logOut():
+        
+        # change status to off
+        cur = mysql.connection.cursor()
+        if 'id' in session:
+                _id = session['id']
+        cur.execute ("UPDATE user SET code_active = '%s' Where id = '%s'" %('OFF', _id))
+        mysql.connection.commit()
+        #remove session
         session.pop('uname', None)
+        session.pop('level', None)
+        session.pop('id', None)
+
         return redirect(url_for("login"))
 
 if __name__=='__main__':
-	app.run(debug=True)
+        app.run(debug=True)
