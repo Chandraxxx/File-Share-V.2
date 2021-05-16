@@ -25,6 +25,7 @@
 		        <a class="nav-link" href="{{url_for('listDownload')}}">Download</a>
 		        {%if session['level'] == 'A':%}
 		        <a class="nav-link" href="{{url_for('listUser')}}">Users</a>
+		        <a href="{{url_for('listReport')}}" class="nav-link">Report</a>
 		        {%endif%}
 		        <a class="nav-link active" href="{{url_for('helpCentre')}}">Help Centre</a>
 		        <button class="nav-link border-0 bg-light"data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</button>
@@ -84,11 +85,18 @@
 						  	<textarea name="message" class="form-control" cols="30" rows="10" required=""></textarea>
 						  </div>
 						  <!-- To -->
+						  {% if session['level'] == 'A':%}
+						  <div class="mb-3">
+						  	<label for="" class="form-label">To:</label>
+						  	<input type="email" class="form-control" required="" name="to">
+						  </div>
+						  {% elif session['level'] == 'M':%}
 						  <div class="invisible">
 						  	<input type="email" class="form-control" required="" value="rubychandra32@gmail.com" name="to">
 						  </div>
+						  {% endif %}
 						  <!-- End to -->
-						  <input type="submit" class="btn btn-primary" value="Submit">
+						  <input type="submit" class="btn btn-primary mb-2" value="Submit">
 						</form>
 					</div>
 				</div>

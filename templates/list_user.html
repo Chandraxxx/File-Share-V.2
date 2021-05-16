@@ -27,6 +27,7 @@
 		        <a class="nav-link" href="{{url_for('listDownload')}}">Download</a>
 		        {% if session['level'] == 'A'%}
 		        <a class="nav-link active" href="{{url_for('listUser')}}">Users</a>
+		        <a href="{{url_for('listReport')}}" class="nav-link">Report</a>
 		        {% endif %}
 		        <a class="nav-link" href="{{url_for('helpCentre')}}">Help Centre</a>
 		        <button class="nav-link border-0 bg-light"data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</button>
@@ -49,7 +50,7 @@
 				  			<div class="col-4 text-end">
 				  				<div class="container">
 				  					<div class="row text-end justify-content-end">
-				  					<div class="col-6">
+				  					<div class="col-6" style="margin-right: -30px;">
 				  						<form  method="GET">
 									        <div class="col">
 									        	<input class="form-control-sm mt-1" type="search" name="s" placeholder="Search by Name" >
@@ -57,14 +58,15 @@
 									    </form>
 				  						
 				  					</div>
-				  					<div class="col-4" style="margin-left:30px;">
-				  						
+				  					<div class="col-6" style="margin-left:30px;">
 				  							<a href="/add_user" class="btn btn-success form-control-sm">
 				  									<i class="fa fa-plus-square-o" aria-hidden="true"  ></i>	
 				  							</a>
-					  			
-					  					
+					  						<a href="/convert" class="btn btn-danger form-control-sm">
+					  							<i class="fa fa-file-pdf-o text-white" aria-hidden="true"></i>
+					  						</a>
 				  					</div>
+				  					
 				  					</div>
 								</div>
 				  			</div>

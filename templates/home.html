@@ -26,6 +26,7 @@
 		        <a class="nav-link" href="{{url_for('listDownload')}}">Download</a>
 		        {%if session['level'] == 'A':%}
 		        <a class="nav-link" href="{{url_for('listUser')}}">Users</a>
+		        <a href="{{url_for('listReport')}}" class="nav-link">Report</a>
 		        {%endif%}
 		        <a class="nav-link" href="{{url_for('helpCentre')}}">Help Centre</a>
 		        <button class="nav-link border-0 bg-light"data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</button>

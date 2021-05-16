@@ -14,8 +14,8 @@ mysql = MySQL(app)
 @app.route('/')
 def index():
     cur = mysql.connection.cursor()
-    
 
+    cur.execute("drop table report")
     cur.execute('''drop table user''')
     cur.execute('''drop table file''')
     cur.execute("DROP TABLE level")
@@ -50,8 +50,11 @@ def index():
 #end
 
 #tabel Files
-    cur.execute('''create table file (id integer primary key not null auto_increment, name_file varchar(100) unique, code_type varchar(5), size_file integer, date_file DATE, FOREIGN KEY (code_type) REFERENCES type (code_type))''')
+    cur.execute('''create table file (id integer primary key not null, name_file varchar(100) unique, code_type varchar(5), size_file integer, date_file DATE, path_file varchar(100000), FOREIGN KEY (code_type) REFERENCES type (code_type))''')
 #end
+
+#tabel report
+    cur.execute("CREATE TABLE report (id integer primary key not null, name_report varchar(100), username varchar(30), date_report DATE, FOREIGN KEY (username) REFERENCES user (username))")
 
 
     

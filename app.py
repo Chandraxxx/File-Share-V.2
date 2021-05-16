@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 from flask_mail import Mail, Message
 from flask_mysqldb import MySQL
 
-
 import os, pdfkit
 
 path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
@@ -17,9 +16,12 @@ app.config['MYSQL_USER'] = 'sql3412162'
 app.config['MYSQL_PASSWORD'] = 'tJqUW9xh7h'
 app.config['MYSQL_HOST'] = 'sql3.freemysqlhosting.net'
 app.config['MYSQL_DB'] = 'sql3412162'
-
-
 mysql = MySQL(app)
+
+# Config for PDF
+path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
+config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
+app.config['PDF_FOLDER'] = os.path.realpath('.') + '/static/report'
 
 
 # Manage Flask-Mail
@@ -349,6 +351,85 @@ def delFile(id):
 
 #end
 
+#list report
+@app.route('/manage_report/list_report')
+def listReport():
+        if 'level' in session:
+                _level = session['level']
+                if _level == 'M':
+                        return redirect(url_for('index'))
+        if 'uname' in session:
+                cur = mysql.connection.cursor()
+                if request.args.get('s') is None:
+                        titlehead = "Report List"
+                        cur.execute("SELECT * FROM report")
+                        container = []
+                        for id, name_report, username, date_report in cur.fetchall():
+                                container.append((id, name_report, username, date_report))
+                        return render_template('/manage_report/list_report.html', title = titlehead, container = container, failed = 'False')
+                else:
+                        key = request.args.get('s')
+                        key = '%' + key + '%'
+                        cur.execute("SELECT * FROM report WHERE name_report like '%s'" %key)
+                        tmp = cur.execute("SELECT * FROM report WHERE name_report like '%s'" %key)
+                        if tmp == 0:
+                                return render_template('/manage_report/list_report.html' ,title = 'Search Result', failed = 'True')
+                        container = []
+                        for id, name_report, username, date_report in cur.fetchall():
+                                container.append((id, name_report, username, date_report))
+                        return render_template('/manage_report/list_report.html', title = 'Search Result',failed = 'False', container = container)
+#end
+
+
+#pdfReader
+@app.route('/manage_report/list_report/pdf_reader')
+def pdfReader():
+        if 'level' in session:
+                _level = session['level']
+                if _level == 'M':
+                        return redirect(url_for('index'))
+        if 'uname' in session:
+                reportName = request.args.get('r_name')
+                return render_template('manage_report/pdf_reader.html', path = reportName)
+#end
+
+
+#convert to pdf
+@app.route('/convert')
+def convert():
+        if 'uname' in session:
+                madeBy = session['uname']
+                createdTime = datetime.now().strftime('%m/%d/%Y %I:%M:%S %p')
+        cur = mysql.connection.cursor()
+        tmp = cur.execute("SELECT id from report")
+
+        cur.execute("SELECT * FROM user")
+        container = []
+        for id,name_user, username, password, code_level, date_user, code_active in cur.fetchall():
+                container.append((id, name_user, username, password, code_level, date_user, code_active))
+
+        reportFile = render_template('manage_report/report_template.html', container = container, madeBy = madeBy, createdTime = createdTime, total = tmp )
+        if cur.execute("SELECT id from report") == 0 :
+                _id = 1
+        elif cur.execute("SELECT id from report") >= 1:
+                cur.execute("SELECT MAX(id) as maximum FROM report")
+                max_id = cur.fetchone()
+                _id = int(''.join(map(str, max_id))) + 1
+        
+        date = datetime.now().date()
+        name_report = "Report list user %s '%s' by %s.pdf"%(_id, date, madeBy)
+
+        pdfFile = app.config['PDF_FOLDER'] + "/Report list user %s '%s' by %s.pdf"%(_id, date, madeBy)
+        options = {'enable-local-file-access' : None}
+        pdfkit.from_string(reportFile, pdfFile, configuration = config, options = options)
+        #add to db
+        cur.execute("INSERT INTO report (id, name_report, username, date_report) VALUES (%s,%s,%s,%s) ", (_id, name_report, madeBy, datetime.now()) )
+        mysql.connection.commit()
+
+        return redirect(url_for('listUser'))
+
+#end
+
 #userlistPage
 @app.route('/list_user')
 def listUser():
@@ -388,7 +469,6 @@ def listUser():
                         return render_template('list_user.html' , container = container, title = headtitle, failed = 'False')
         else:
                 return redirect(url_for('login'))
-
 
 # helpCentrePage
 @app.route('/help_centre',methods=['GET','POST'])
