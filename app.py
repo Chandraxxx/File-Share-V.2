@@ -32,7 +32,7 @@ app.config['MAIL_USE_SSL'] = False
 
 # Manage Session
 app.secret_key = "1q2w3e4r5t"
-app.config['PERMANENT_SESSION_LIFETIME'] =  timedelta(minutes=15)
+# app.config['PERMANENT_SESSION_LIFETIME'] =  timedelta(minutes=15)
 
 # Manage Upload File
 app.config['UPLOAD_FOLDER'] = os.path.realpath('.') + '/static/file'
@@ -183,13 +183,15 @@ def editUser(id):
                         id = request.form['id']
                         name = request.form['name']
                         username = request.form['uname']
+                        if cur.execute("SELECT id FROM user WHERE username = '%s'" %username) >= 1:
+                                return render_template('manage_user/edit_user.html', data = result, failed = "True")
                         password = request.form['pw']
                         level = request.form['level']
                         cur.execute("UPDATE user SET name_user = '%s', username = '%s', password = '%s', code_level = '%s' WHERE id = '%s' " % (name, username, password, level, id))
                         mysql.connection.commit()
                         return redirect(url_for('listUser'))
                 else:
-                        return render_template('manage_user/edit_user.html', data = result)
+                        return render_template('manage_user/edit_user.html', failed = "False", data = result)
         else:
                 return redirect(url_for('login'))
 ##end edit
